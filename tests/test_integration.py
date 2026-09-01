@@ -22,6 +22,7 @@ import subprocess
 import sys
 import tempfile
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -31,6 +32,13 @@ sys.path.insert(0, str(PROJECT_ROOT / "recoll_wrapper"))
 sys.path.insert(0, str(PROJECT_ROOT / "sms-processor"))
 sys.path.insert(0, str(PROJECT_ROOT / "recoll-audio-worker"))
 sys.path.insert(0, str(PROJECT_ROOT / "recoll-webui"))
+
+# Mock recoll imports for webui if not available (recoll is a system package)
+try:
+    import recoll
+except ImportError:
+    sys.modules['recoll'] = MagicMock()
+    sys.modules['recoll.rclextract'] = MagicMock()
 
 # Import service modules (gracefully handle missing modules)
 def _import_module(module_name: str, package_path: str = ""):
@@ -465,14 +473,19 @@ class TestCrossServiceErrorHandling:
 
     def test_missing_input_directory_handled(self, tmp_path: Path) -> None:
         """Verify services handle missing input directories gracefully."""
-        from sms_processor.core import scan_and_process
+        from sms_processor.core import scan_and_process, INPUT_DIR
 
-        # Use a non-existent directory
-        missing_dir = tmp_path / "nonexistent"
+        # Temporarily override INPUT_DIR to a non-existent path
+        import sms_processor.core as core_module
+        original_input_dir = core_module.INPUT_DIR
 
-        # Should not raise, just return empty
-        result = scan_and_process(missing_dir, tmp_path / "output", "test")
-        # Function should handle missing directory gracefully
+        try:
+            core_module.INPUT_DIR = tmp_path / "nonexistent"
+            # Should not raise, just return 0
+            result = scan_and_process()
+            assert result == 0
+        finally:
+            core_module.INPUT_DIR = original_input_dir
 
     def test_empty_input_handled(self, tmp_path: Path) -> None:
         """Verify services handle empty input gracefully."""
