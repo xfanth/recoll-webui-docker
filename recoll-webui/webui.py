@@ -9,11 +9,11 @@ import glob
 import hashlib
 import json
 import csv
-import io as StringIO
+import io
 import configparser as ConfigParser
 import string
 import shlex
-import urllib
+import urllib.parse
 # import recoll and rclextract
 try:
     from recoll import recoll
@@ -117,7 +117,7 @@ def get_config():
     rclconf = rclconfig.RclConfig()
     config['confdir'] = rclconf.getConfDir()
     topdirs = rclconf.config.get('topdirs', rclconf.keydir) if rclconf.config else rclconf.keydir
-    config['dirs'] = [os.path.expanduser(d) for d in
+    config['dirs'] = [os.path.abspath(os.path.expanduser(d)) for d in
                       shlex.split(topdirs or rclconf.keydir or '')]
     config['stemlang'] = rclconf.config.get('indexstemminglanguages', rclconf.keydir) if rclconf.config else (rclconf.keydir or '')
     # get config from cookies or defaults
@@ -134,7 +134,7 @@ def get_config():
     # get mountpoints
     config['mounts'] = {}
     for d in config['dirs']:
-        name = 'mount_%s' % urllib.quote(d,'')
+        name = 'mount_%s' % urllib.parse.quote(d,'')
         config['mounts'][d] = select([bottle.request.get_cookie(name), DEFAULTS['mounts'].get(d), 'file://%s' % d], [None, ''])
     return config
 #}}}
@@ -142,6 +142,7 @@ def get_config():
 def get_dirs(tops, depth):
     v = []
     for top in tops:
+        top = os.path.abspath(top)
         dirs = [top]
         for d in range(1, depth+1):
             dirs = dirs + glob.glob(top + '/*' * d)
@@ -366,7 +367,7 @@ def set():
     for k, v in DEFAULTS.items():
         bottle.response.set_cookie(k, str(bottle.request.query.get(k)), max_age=3153600000, expires=315360000)
     for d in config['dirs']:
-        cookie_name = 'mount_%s' % urllib.quote(d, '')
+        cookie_name = 'mount_%s' % urllib.parse.quote(d, '')
         bottle.response.set_cookie(cookie_name, str(bottle.request.query.get('mount_%s' % d)), max_age=3153600000, expires=315360000)
     bottle.redirect('./')
 #}}}
