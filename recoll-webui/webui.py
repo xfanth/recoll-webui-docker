@@ -9,8 +9,8 @@ import glob
 import hashlib
 import json
 import csv
-import StringIO
-import ConfigParser
+import io as StringIO
+import configparser as ConfigParser
 import string
 import shlex
 import urllib
@@ -145,9 +145,7 @@ def get_dirs(tops, depth):
         dirs = [top]
         for d in range(1, depth+1):
             dirs = dirs + glob.glob(top + '/*' * d)
-        dirs = filter(lambda f: os.path.isdir(f), dirs)
-        top_path = top.rsplit('/', 1)[0]
-        dirs = [w.replace(top_path+'/', '', 1) for w in dirs]
+        dirs = list(filter(lambda f: os.path.isdir(f), dirs))
         v = v + dirs
     return ['<all>'] + v
 #}}}
@@ -345,7 +343,7 @@ def get_csv():
     bottle.response.headers['Content-Type'] = 'text/csv'
     bottle.response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.csv' % normalise_filename(qs)
     res, nres, timer = recoll_search(query, False)
-    si = StringIO.StringIO()
+    si = io.StringIO()
     cw = csv.writer(si)
     fields = config['csvfields'].split()
     cw.writerow(fields)

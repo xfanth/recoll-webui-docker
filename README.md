@@ -235,3 +235,11 @@ The standalone Immich on TrueNAS uses these separate paths:
 
 The current docker-compose.yml needs to be updated to mount these correctly.
 # CI test update 2026-08-08T13:00:05Z
+
+## Folder Path Filtering Fix
+
+The original Recoll WebUI folder dropdown returned relative paths by stripping the parent directory from each entry. Recoll’s `dir:` query clause requires absolute paths (e.g., `dir:/home/user/docs`). Consequently, selecting a folder in the UI produced no results.
+
+The fix modifies `recoll-webui/webui.py::get_dirs` to return full absolute paths and updates `recoll-webui/views/search.tpl` so the UI displays only the folder name while using the absolute path as the `<option>` value. A new test (`tests/test_get_dirs.py`) verifies that `get_dirs` now returns absolute paths and includes the `<all>` entry.
+
+This change restores proper folder‑path filtering and aligns the UI with Recoll documentation.
