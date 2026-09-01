@@ -1,5 +1,5 @@
 [project]
-name = "recoll-webui-docker"
+name = "recoll-webui-docker-root"
 version = "0.1.0"
 description = "Recoll WebUI Docker stack with cross-service integration (root workspace)"
 requires-python = ">=3.14"
