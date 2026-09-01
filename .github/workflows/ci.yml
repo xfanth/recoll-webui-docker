@@ -160,19 +160,20 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
+      - name: Set up Python 3.14
+        uses: actions/setup-python@v5
         with:
-          enable-cache: true
+          python-version: "3.14"
 
-      - name: Integration tests — recoll_wrapper
-        run: cd recoll_wrapper && uv run pytest tests/ -v -m "integration" --tb=short 2>/dev/null || echo "No integration tests marked"
+      - name: Install dependencies
+        run: |
+          pip install pytest
+          pip install -e recoll_wrapper
+          pip install -e sms-processor
+          pip install -e recoll-audio-worker
 
-      - name: Integration tests — sms-processor
-        run: cd sms-processor && uv run pytest tests/ -v -m "integration" --tb=short 2>/dev/null || echo "No integration tests marked"
-
-      - name: Integration tests — recoll-audio-worker
-        run: cd recoll-audio-worker && uv run pytest tests/ -v -m "integration" --tb=short 2>/dev/null || echo "No integration tests marked"
+      - name: Integration tests — cross-service data flow
+        run: pytest tests/test_integration.py -v --tb=short
 
 # ============================================================
 # STAGE 5: Contract Testing
