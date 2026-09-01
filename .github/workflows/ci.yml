@@ -160,9 +160,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
 
-      - name: Set up Python 3.14
-        uses: actions/setup-python@v5
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
         with:
+          enable-cache: true
           python-version: "3.14"
 
       - name: Install system dependencies
@@ -171,14 +172,10 @@ jobs:
           sudo apt-get install -y python3-recoll
 
       - name: Install Python dependencies
-        run: |
-          pip install pytest
-          pip install -e recoll_wrapper
-          pip install -e sms-processor
-          pip install -e recoll-audio-worker
+        run: uv sync
 
       - name: Integration tests — cross-service data flow
-        run: pytest tests/test_integration.py -v --tb=short
+        run: uv run pytest tests/test_integration.py -v --tb=short
 
 # ============================================================
 # STAGE 5: Contract Testing
