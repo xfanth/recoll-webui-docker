@@ -377,7 +377,7 @@ class Router(object):
 
         try:
             re_match = re.compile('^(%s)$' % pattern).match
-        except re.error, e:
+        except re.error as e:
             raise RouteSyntaxError("Could not add Route: %s (%s)" % (rule, e))
 
         def match(path):
@@ -394,7 +394,7 @@ class Router(object):
             combined = '%s|(^%s$)' % (self.dynamic[-1][0].pattern, flat_pattern)
             self.dynamic[-1] = (re.compile(combined), self.dynamic[-1][1])
             self.dynamic[-1][1].append((match, target))
-        except (AssertionError, IndexError), e: # AssertionError: Too many groups
+        except (AssertionError, IndexError) as e: # AssertionError: Too many groups
             self.dynamic.append((re.compile('(^%s$)' % flat_pattern),
                                 [(match, target)]))
         return match
@@ -407,7 +407,7 @@ class Router(object):
             for i, value in enumerate(anons): query['anon%d'%i] = value
             url = ''.join([f(query.pop(n)) if n else f for (n,f) in builder])
             return url if not query else url+'?'+urlencode(query)
-        except KeyError, e:
+        except KeyError as e:
             raise RouteBuildError('Missing URL argument: %r' % e.args[0])
 
     def match(self, environ):
@@ -742,14 +742,14 @@ class Bottle(object):
             environ['route.handle'] = environ['bottle.route'] = route
             environ['route.url_args'] = args
             return route.call(**args)
-        except HTTPResponse, r:
+        except HTTPResponse as r:
             return r
         except RouteReset:
             route.reset()
             return self._handle(environ)
         except (KeyboardInterrupt, SystemExit, MemoryError):
             raise
-        except Exception, e:
+        except Exception as e:
             if not self.catchall: raise
             stacktrace = format_exc(10)
             environ['wsgi.errors'].write(stacktrace)
@@ -804,9 +804,9 @@ class Bottle(object):
                 first = out.next()
         except StopIteration:
             return self._cast('', request, response)
-        except HTTPResponse, e:
+        except HTTPResponse as e:
             first = e
-        except Exception, e:
+        except Exception as e:
             first = HTTPError(500, 'Unhandled exception', e, format_exc(10))
             if isinstance(e, (KeyboardInterrupt, SystemExit, MemoryError))\
             or not self.catchall:
@@ -838,7 +838,7 @@ class Bottle(object):
             return out
         except (KeyboardInterrupt, SystemExit, MemoryError):
             raise
-        except Exception, e:
+        except Exception as e:
             if not self.catchall: raise
             err = '<h1>Critical error while processing request: %s</h1>' \
                   % html_escape(environ.get('PATH_INFO', '/'))
@@ -1631,7 +1631,7 @@ class MultiDict(DictMixin):
         try:
             val = self.dict[key][index]
             return type(val) if type else val
-        except Exception, e:
+        except Exception as e:
             pass
         return default
 
@@ -1672,7 +1672,7 @@ class FormsDict(MultiDict):
             elif isinstance(value, unicode): # Python 3 WSGI
                 return value.encode('latin1').decode(enc)
             return value
-        except UnicodeError, e:
+        except UnicodeError as e:
             return default
 
     def __getattr__(self, name): return self.getunicode(name, default=u'')
@@ -2952,7 +2952,7 @@ if __name__ == '__main__':
     try:
         sys.path.insert(0, '.')
         sys.modules.setdefault('bottle', sys.modules['__main__'])
-    except (AttributeError, ImportError), e:
+    except (AttributeError, ImportError) as e:
         parser.error(e.args[0])
 
     if opt.bind and ':' in opt.bind:
