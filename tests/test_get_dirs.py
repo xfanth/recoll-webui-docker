@@ -1,6 +1,10 @@
 import os
 import sys
 import tempfile
+from unittest.mock import MagicMock
+
+# Mock the recoll module before importing webui
+sys.modules['recoll'] = MagicMock()
 
 # Ensure the recoll-webui package is on the import path
 WEBUI_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'recoll-webui'))
