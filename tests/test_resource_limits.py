@@ -1,4 +1,3 @@
-#!/usr/bin/env python3
 """
 Verify every container in the stack has CPU and memory limits defined in
 .env.example and enforced via `deploy.resources.limits` in docker-compose.yml.
@@ -33,8 +32,7 @@ def load_env_example_vars() -> set[str]:
         if "=" not in line:
             continue
         # Strip optional `export ` prefix
-        if line.startswith("export "):
-            line = line[len("export ") :]
+        line = line.removeprefix("export ")
         key, _, _ = line.partition("=")
         declared.add(key.strip())
     return declared

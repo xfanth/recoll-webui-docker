@@ -1,10 +1,8 @@
 #!/usr/bin/env python
 
-import locale
-import re
-import os
-import sys
 import base64
+import os
+
 
 class ConfSimple:
     """A ConfSimple class reads a recoll configuration file, which is a typical

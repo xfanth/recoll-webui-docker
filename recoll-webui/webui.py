@@ -1,31 +1,30 @@
 #!/usr/bin/env python
 #{{{ imports
-import os
-import bottle
-import time
-import sys
+import csv
 import datetime
 import glob
 import hashlib
-import json
-import csv
 import io
-import configparser as ConfigParser
-import string
+import json
+import os
 import shlex
+import string
+import time
 import urllib.parse
+
+import bottle
+
 # import recoll and rclextract
 try:
-    from recoll import recoll
-    from recoll import rclextract
+    from recoll import rclextract, recoll
     hasrclextract = True
-except:
+except Exception:
     import recoll
     hasrclextract = False
 # import rclconfig system-wide or local copy
 try:
     from recoll import rclconfig
-except:
+except Exception:
     import rclconfig
 #}}}
 #{{{ settings
@@ -103,7 +102,7 @@ def timestr(secs, fmt):
 def normalise_filename(fn):
     valid_chars = "_-%s%s" % (string.ascii_letters, string.digits)
     out = ""
-    for i in range(0,len(fn)):
+    for i in range(len(fn)):
         if fn[i] in valid_chars:
             out += fn[i]
         else:
@@ -182,7 +181,7 @@ def recoll_initsearch(q):
     try:
         qs = query_to_recoll_string(q)
         query.execute(qs, config['stem'], config['stemlang'])
-    except:
+    except Exception:
         pass
     return query
 #}}}
@@ -203,8 +202,7 @@ def recoll_search(q, dosnippets=True):
 
     if config['maxresults'] == 0:
         config['maxresults'] = nres
-    if nres > config['maxresults']:
-        nres = config['maxresults']
+    nres = min(nres, config['maxresults'])
     if config['perpage'] == 0 or q['page'] == 0:
         config['perpage'] = nres
         q['page'] = 1
@@ -220,7 +218,7 @@ def recoll_search(q, dosnippets=True):
     for i in range(config['perpage']):
         try:
             doc = query.fetchone()
-        except:
+        except Exception:
             break
         d = {}
         for f in FIELDS:
@@ -374,7 +372,7 @@ def set():
 #{{{ osd
 @bottle.route('/osd.xml')
 @bottle.view('osd')
-def main():
+def osd():
     #config = get_config()
     url = bottle.request.urlparts
     url = '%s://%s' % (url.scheme, url.netloc)

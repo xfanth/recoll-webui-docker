@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 Bottle is a fast and simple micro-framework for small web applications. It
 offers request dispatching (Routes) with url parameter support, templates,
@@ -35,7 +34,7 @@ if __name__ == '__main__':
     if _cmd_options.server and _cmd_options.server.startswith('gevent'):
         import gevent.monkey; gevent.monkey.patch_all()
 
-import sys
+import _thread
 import base64
 import cgi
 import email.utils
@@ -48,20 +47,24 @@ import mimetypes
 import os
 import re
 import subprocess
+import sys
 import tempfile
-import _thread
 import threading
 import time
-import warnings
-
-from http.cookies import SimpleCookie
-from datetime import date as datedate, datetime, timedelta
-from tempfile import TemporaryFile
-from traceback import format_exc, print_exc
-from urllib.parse import urljoin, SplitResult as UrlSplitResult
+import urllib.error
+import urllib.parse
 
 # Workaround for a bug in some versions of lib2to3 (fixed on CPython 2.7 and 3.2)
-import urllib.request, urllib.parse, urllib.error
+import urllib.request
+import warnings
+from datetime import date as datedate
+from datetime import datetime, timedelta
+from http.cookies import SimpleCookie
+from tempfile import TemporaryFile
+from traceback import format_exc, print_exc
+from urllib.parse import SplitResult as UrlSplitResult
+from urllib.parse import urljoin
+
 urlencode = urllib.parse.urlencode
 urlquote = urllib.parse.quote
 urlunquote = urllib.parse.unquote
@@ -69,7 +72,7 @@ urlunquote = urllib.parse.unquote
 try:
     from collections.abc import MutableMapping as DictMixin
 except ImportError:
-    from collections import MutableMapping as DictMixin
+    from collections.abc import MutableMapping as DictMixin
 except ImportError:  # pragma: no cover
     from UserDict import DictMixin
 
@@ -89,13 +92,16 @@ if sys.version_info < (2,6,0):
 
 
 try:
-    from json import dumps as json_dumps, loads as json_lds
+    from json import dumps as json_dumps
+    from json import loads as json_lds
 except ImportError:
     try:
-        from simplejson import dumps as json_dumps, loads as json_lds
+        from simplejson import dumps as json_dumps
+        from simplejson import loads as json_lds
     except ImportError:
         try:
-            from django.utils.simplejson import dumps as json_dumps, loads as json_lds
+            from django.utils.simplejson import dumps as json_dumps
+            from django.utils.simplejson import loads as json_lds
         except ImportError:
             def json_dumps(data):
                 raise ImportError("JSON support requires Python 2.6 or simplejson.")
@@ -156,7 +162,7 @@ def makelist(data):
     else: return []
 
 
-class DictProperty(object):
+class DictProperty:
     ''' Property that maps to a key in a local dict-like attribute. '''
     def __init__(self, attr, key=None, read_only=False):
         self.attr, self.key, self.read_only = attr, key, read_only
@@ -181,7 +187,7 @@ class DictProperty(object):
         del getattr(obj, self.attr)[self.key]
 
 
-class CachedProperty(object):
+class CachedProperty:
     ''' A property that is only computed once per instance and then replaces
         itself with an ordinary attribute. Deleting the attribute resets the
         property. '''
@@ -197,7 +203,7 @@ class CachedProperty(object):
 cached_property = CachedProperty
 
 
-class lazy_attribute(object): # Does not need configuration -> lower-case name
+class lazy_attribute: # Does not need configuration -> lower-case name
     ''' A property that caches itself to the class object. '''
     def __init__(self, func):
         functools.update_wrapper(self, func, updated=[])
@@ -220,7 +226,6 @@ class lazy_attribute(object): # Does not need configuration -> lower-case name
 
 class BottleException(Exception):
     """ A base class for exceptions used by bottle. """
-    pass
 
 
 #TODO: These should subclass BaseRequest
@@ -244,7 +249,7 @@ class HTTPError(HTTPResponse):
     """ Used to generate an error page """
     def __init__(self, code=500, output='Unknown Error', exception=None,
                  traceback=None, header=None):
-        super(HTTPError, self).__init__(output, code, header)
+        super().__init__(output, code, header)
         self.exception = exception
         self.traceback = traceback
 
@@ -277,7 +282,7 @@ class RouteSyntaxError(RouteError):
 class RouteBuildError(RouteError):
     """ The route could not been built """
 
-class Router(object):
+class Router:
     ''' A Router is an ordered collection of route->target pairs. It is used to
         efficiently match WSGI requests against a number of routes and return
         the first target that satisfies the request. The target may be anything,
@@ -403,7 +408,7 @@ class Router(object):
             combined = '%s|(^%s$)' % (self.dynamic[-1][0].pattern, flat_pattern)
             self.dynamic[-1] = (re.compile(combined), self.dynamic[-1][1])
             self.dynamic[-1][1].append((match, target))
-        except (AssertionError, IndexError) as e: # AssertionError: Too many groups
+        except (AssertionError, IndexError): # AssertionError: Too many groups
             self.dynamic.append((re.compile('(^%s$)' % flat_pattern),
                                 [(match, target)]))
         return match
@@ -449,7 +454,7 @@ class Router(object):
 
 
 
-class Route(object):
+class Route:
     ''' This class wraps a route callback along with route specific metadata and
         configuration and applies Plugins on demand. It is also responsible for
         turing an URL path rule into a regular expression usable by the Router.
@@ -542,7 +547,7 @@ class Route(object):
 ###############################################################################
 
 
-class Bottle(object):
+class Bottle:
     """ WSGI application """
 
     def __init__(self, catchall=True, autojson=True, config=None):
@@ -1210,7 +1215,7 @@ def _hkey(s):
     return s.title().replace('_','-')
 
 
-class HeaderProperty(object):
+class HeaderProperty:
     def __init__(self, name, reader=None, writer=str, default=''):
         self.name, self.reader, self.writer, self.default = name, reader, writer, default
         self.__doc__ = 'Current value of the %r header.' % name.title()
@@ -1229,7 +1234,7 @@ class HeaderProperty(object):
             del obj.headers[self.name]
 
 
-class BaseResponse(object):
+class BaseResponse:
     """ Storage class for a response body as well as headers and cookies.
 
         This class does support dict-like case-insensitive item-access to
@@ -1474,7 +1479,7 @@ Request  = LocalRequest  # BC 0.9
 
 class PluginError(BottleException): pass
 
-class JSONPlugin(object):
+class JSONPlugin:
     name = 'json'
     api  = 2
 
@@ -1496,7 +1501,7 @@ class JSONPlugin(object):
         return wrapper
 
 
-class HooksPlugin(object):
+class HooksPlugin:
     name = 'hooks'
     api  = 2
 
@@ -1541,7 +1546,7 @@ class HooksPlugin(object):
         return wrapper
 
 
-class TemplatePlugin(object):
+class TemplatePlugin:
     ''' This plugin applies the :func:`view` decorator to all routes with a
         `template` config parameter. If the parameter is a tuple, the second
         element must be a dict with additional options (e.g. `template_engine`)
@@ -1563,7 +1568,7 @@ class TemplatePlugin(object):
 
 
 #: Not a plugin, but part of the plugin API. TODO: Find a better place.
-class _ImportRedirect(object):
+class _ImportRedirect:
     def __init__(self, name, impmask):
         ''' Create a virtual package that redirects imports (see PEP 302). '''
         self.name = name
@@ -1640,7 +1645,7 @@ class MultiDict(DictMixin):
         try:
             val = self.dict[key][index]
             return type(val) if type else val
-        except Exception as e:
+        except Exception:
             pass
         return default
 
@@ -1681,7 +1686,7 @@ class FormsDict(MultiDict):
             elif isinstance(value, str): # Python 3 WSGI
                 return value.encode('latin1').decode(enc)
             return value
-        except UnicodeError as e:
+        except UnicodeError:
             return default
 
     def __getattr__(self, name): return self.getunicode(name, default='')
@@ -1808,7 +1813,7 @@ class AppStack(list):
         return value
 
 
-class WSGIFileWrapper(object):
+class WSGIFileWrapper:
 
    def __init__(self, fp, buffer_size=1024*64):
        self.fp, self.buffer_size = fp, buffer_size
@@ -1989,7 +1994,7 @@ def yieldroutes(func):
         c(x, y=5)   -> '/c/:x' and '/c/:x/:y'
         d(x=5, y=6) -> '/d' and '/d/:x' and '/d/:x/:y'
     """
-    import inspect # Expensive module. Only import if necessary.
+    import inspect  # Expensive module. Only import if necessary.
     path = '/' + func.__name__.replace('__','/').lstrip('/')
     spec = inspect.getargspec(func)
     argc = len(spec[0]) - len(spec[3] or [])
@@ -2074,8 +2079,7 @@ def make_default_app_wrapper(name):
     return wrapper
 
 
-for name in '''route get post put delete error mount
-               hook install uninstall'''.split():
+for name in ['route', 'get', 'post', 'put', 'delete', 'error', 'mount', 'hook', 'install', 'uninstall']:
     globals()[name] = make_default_app_wrapper(name)
 url = make_default_app_wrapper('get_url')
 del name
@@ -2090,7 +2094,7 @@ del name
 ###############################################################################
 
 
-class ServerAdapter(object):
+class ServerAdapter:
     quiet = False
     def __init__(self, host='127.0.0.1', port=8080, **config):
         self.options = config
@@ -2124,7 +2128,7 @@ class FlupFCGIServer(ServerAdapter):
 
 class WSGIRefServer(ServerAdapter):
     def run(self, handler): # pragma: no cover
-        from wsgiref.simple_server import make_server, WSGIRequestHandler
+        from wsgiref.simple_server import WSGIRequestHandler, make_server
         if self.quiet:
             class QuietHandler(WSGIRequestHandler):
                 def log_request(*args, **kw): pass
@@ -2185,7 +2189,9 @@ class FapwsServer(ServerAdapter):
 class TornadoServer(ServerAdapter):
     """ The super hyped asynchronous server by facebook. Untested. """
     def run(self, handler): # pragma: no cover
-        import tornado.wsgi, tornado.httpserver, tornado.ioloop
+        import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
         container = tornado.wsgi.WSGIContainer(handler)
         server = tornado.httpserver.HTTPServer(container)
         server.listen(port=self.port)
@@ -2208,9 +2214,9 @@ class AppEngineServer(ServerAdapter):
 class TwistedServer(ServerAdapter):
     """ Untested. """
     def run(self, handler):
-        from twisted.web import server, wsgi
-        from twisted.python.threadpool import ThreadPool
         from twisted.internet import reactor
+        from twisted.python.threadpool import ThreadPool
+        from twisted.web import server, wsgi
         thread_pool = ThreadPool()
         thread_pool.start()
         reactor.addSystemEventTrigger('after', 'shutdown', thread_pool.stop)
@@ -2235,7 +2241,8 @@ class GeventServer(ServerAdapter):
           issues: No streaming, no pipelining, no SSL.
     """
     def run(self, handler):
-        from gevent import wsgi as wsgi_fast, pywsgi, monkey, local
+        from gevent import local, monkey, pywsgi
+        from gevent import wsgi as wsgi_fast
         if self.options.get('monkey', True):
             if not threading.local is local.local: monkey.patch_all()
         wsgi = wsgi_fast if self.options.get('fast') else pywsgi
@@ -2263,7 +2270,7 @@ class GunicornServer(ServerAdapter):
 class EventletServer(ServerAdapter):
     """ Untested """
     def run(self, handler):
-        from eventlet import wsgi, listen
+        from eventlet import listen, wsgi
         wsgi.server(listen((self.host, self.port)), handler)
 
 
@@ -2497,7 +2504,7 @@ class TemplateError(HTTPError):
         HTTPError.__init__(self, 500, message)
 
 
-class BaseTemplate(object):
+class BaseTemplate:
     """ Base class and minimal API for template adapters """
     extensions = ['tpl','html','thtml','stpl']
     settings = {} #used in prepare()
@@ -2570,8 +2577,8 @@ class BaseTemplate(object):
 
 class MakoTemplate(BaseTemplate):
     def prepare(self, **options):
-        from mako.template import Template
         from mako.lookup import TemplateLookup
+        from mako.template import Template
         options.update({'input_encoding':self.encoding})
         options.setdefault('format_exceptions', bool(DEBUG))
         lookup = TemplateLookup(directories=self.lookup, **options)

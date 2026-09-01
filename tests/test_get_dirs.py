@@ -1,7 +1,7 @@
 import os
 import sys
 import tempfile
-from unittest.mock import MagicMock, patch
+from unittest.mock import MagicMock
 
 # Mock the recoll module before importing webui
 sys.modules['recoll'] = MagicMock()
