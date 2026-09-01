@@ -115,6 +115,9 @@ jobs:
         with:
           enable-cache: true
 
+      - name: Install pytest (root-level tests)
+        run: uv pip install pytest
+
       - name: Unit tests — recoll_wrapper
         run: cd recoll_wrapper && uv run pytest tests/ -v -m "unit or not integration" --tb=short
 
