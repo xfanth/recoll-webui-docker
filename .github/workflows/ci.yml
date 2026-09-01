@@ -114,10 +114,6 @@ jobs:
         uses: astral-sh/setup-uv@c771a70e6277c0a99b617c7a806ffedaca235ff9 # v9.0.0
         with:
           enable-cache: true
-
-      - name: Install pytest (root-level tests)
-        run: uv pip install pytest
-
       - name: Unit tests — recoll_wrapper
         run: cd recoll_wrapper && uv run pytest tests/ -v -m "unit or not integration" --tb=short
 
@@ -128,7 +124,7 @@ jobs:
         run: cd recoll-audio-worker && uv run pytest tests/ -v -m "unit or not integration" --tb=short
 
       - name: Unit tests — recoll-webui (get_dirs)
-        run: pytest tests/test_get_dirs.py -v --tb=short
+        run: uv run --with pytest pytest tests/test_get_dirs.py -v --tb=short
 
   unit-test-javascript:
     name: Unit Tests - JavaScript
