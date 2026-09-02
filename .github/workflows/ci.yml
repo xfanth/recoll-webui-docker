@@ -86,8 +86,6 @@ jobs:
             test -f "$f" || { echo "FAIL: $f not found"; exit 1; }
           done
 
-      - name: Lint — Docker Compose
-        run: docker compose -f docker-compose.yml config --quiet
 
       - name: Lint — GitHub Actions
         uses: rhysd/actionlint@914e7df21a07ef503a81201c76d2b11c789d3fca # v1.7.12
@@ -135,6 +133,7 @@ jobs:
         run: |
           cd recoll_wrapper
           uv sync
+          mkdir -p ../coverage-reports
           uv run pytest -v tests \
             --cov=recoll_wrapper \
             --cov-report=xml:../coverage-reports/recoll_wrapper_unit.xml \
@@ -142,9 +141,8 @@ jobs:
             --cov-branch \
             --cov-fail-under=80
 
-      - name: Rename coverage report
+      - name: Verify coverage report
         run: |
-          # Coverage report already written to correct location
           ls -la coverage-reports/
 
       - name: Upload coverage artifact
