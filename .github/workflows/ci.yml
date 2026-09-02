@@ -135,17 +135,17 @@ jobs:
         run: |
           cd recoll_wrapper
           uv sync
-          mkdir -p coverage-reports
           uv run pytest -v tests \
             --cov=recoll_wrapper \
-            --cov-report=xml \
+            --cov-report=xml:../coverage-reports/recoll_wrapper_unit.xml \
             --cov-report=term-missing \
             --cov-branch \
             --cov-fail-under=80
 
       - name: Rename coverage report
         run: |
-          mv recoll_wrapper/coverage.xml coverage-reports/recoll_wrapper_unit.xml
+          # Coverage report already written to correct location
+          ls -la coverage-reports/
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -175,17 +175,17 @@ jobs:
         run: |
           cd sms-processor
           uv sync
-          mkdir -p coverage-reports
+          mkdir -p ../coverage-reports
           uv run pytest -v tests \
             --cov=src \
-            --cov-report=xml \
+            --cov-report=xml:../coverage-reports/sms-processor_unit.xml \
             --cov-report=term-missing \
             --cov-branch \
             --cov-fail-under=80
 
       - name: Rename coverage report
         run: |
-          mv sms-processor/coverage.xml coverage-reports/sms-processor_unit.xml
+          echo "Coverage report generated at coverage-reports/sms-processor_unit.xml"
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
@@ -215,17 +215,17 @@ jobs:
         run: |
           cd recoll-audio-worker
           uv sync
-          mkdir -p coverage-reports
+          mkdir -p ../coverage-reports
           uv run pytest -v tests \
             --cov=transcribe \
-            --cov-report=xml \
+            --cov-report=xml:../coverage-reports/recoll-audio-worker_unit.xml \
             --cov-report=term-missing \
             --cov-branch \
             --cov-fail-under=80
 
       - name: Rename coverage report
         run: |
-          mv recoll-audio-worker/coverage.xml coverage-reports/recoll-audio-worker_unit.xml
+          echo "Coverage report generated at coverage-reports/recoll-audio-worker_unit.xml"
 
       - name: Upload coverage artifact
         uses: actions/upload-artifact@v4
