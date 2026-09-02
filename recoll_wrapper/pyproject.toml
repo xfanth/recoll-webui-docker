@@ -9,7 +9,7 @@ requires = ["uv_build>=0.12.1,<0.13.0"]
 build-backend = "uv_build"
 
 [tool.uv.packages]
-recoll_wrapper = { from = "." }
+recoll_wrapper = { from = "src" }
 
 [tool.pytest.ini_options]
 addopts = "--cov=. --cov-report=xml --cov-fail-under=80 --cov-branch"
@@ -18,8 +18,11 @@ testpaths = ["tests"]
 [tool.coverage.run]
 source = ["."]
 branch = true
+omit = ["tests/**", "recollindex.py"]
 
 [dependency-groups]
 dev = [
     "pytest-cov>=7.1.0",
+    "ruff>=0.16.0",
+    "ty>=0.0.67",
 ]

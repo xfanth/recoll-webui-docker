@@ -49,7 +49,9 @@ log = logging.getLogger("sms-processor")
 # ---------------------------------------------------------------------------
 INPUT_DIR = Path(sys.argv[1]) if len(sys.argv) > 1 else Path("/input")
 OUTPUT_DIR = Path(sys.argv[2]) if len(sys.argv) > 2 else Path("/output")
-POLL_SECONDS = int(os.environ.get("POLL_INTERVAL", sys.argv[3] if len(sys.argv) > 3 else "300"))
+POLL_SECONDS = int(
+    os.environ.get("POLL_INTERVAL", sys.argv[3] if len(sys.argv) > 3 else "300")
+)
 STATE_FILE = OUTPUT_DIR / ".processed.json"
 
 
@@ -61,7 +63,7 @@ def load_state() -> dict[str, str]:
     if STATE_FILE.exists():
         try:
             return json.loads(STATE_FILE.read_text())
-        except (json.JSONDecodeError, OSError):
+        except json.JSONDecodeError, OSError:
             log.warning("Corrupt state file, starting fresh")
             return {}
     return {}
@@ -95,15 +97,13 @@ def parse_timestamp(value: str) -> datetime | None:
     if not value:
         return None
     try:
-        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(
-            tzinfo=UTC
-        )
+        return datetime.strptime(value, "%Y-%m-%d %H:%M:%S").replace(tzinfo=UTC)
     except ValueError:
         pass
     # Fallback: epoch milliseconds
     try:
         return datetime.fromtimestamp(int(value) / 1000, tz=UTC)
-    except (ValueError, OSError, OverflowError):
+    except ValueError, OSError, OverflowError:
         return None
 
 
@@ -215,9 +215,7 @@ def contact_key(address: str, contact_name: str | None) -> tuple[str, str]:
     return (safe, address)
 
 
-def process_xml_file(
-    xml_path: Path, output_base: Path, user_label: str
-) -> list[str]:
+def process_xml_file(xml_path: Path, output_base: Path, user_label: str) -> list[str]:
     """
     Process a single XML backup file.
     Returns list of contact keys that were updated.
@@ -252,10 +250,7 @@ def process_xml_file(
             display = key.split(" (", 1)[0]
 
         # Sort by timestamp
-        msgs.sort(
-            key=lambda m: m["timestamp"]
-            or datetime.min.replace(tzinfo=UTC)
-        )
+        msgs.sort(key=lambda m: m["timestamp"] or datetime.min.replace(tzinfo=UTC))
 
         md_path = user_dir / f"{key}.md"
 
@@ -274,9 +269,7 @@ def process_xml_file(
     return updated
 
 
-def _build_md_content(
-    msgs: list[dict[str, Any]], display_name: str
-) -> str:
+def _build_md_content(msgs: list[dict[str, Any]], display_name: str) -> str:
     """Build markdown text for a batch of messages."""
     lines: list[str] = []
     for msg in msgs:

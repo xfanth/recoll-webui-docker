@@ -28,9 +28,10 @@ import pytest
 
 # Ensure all service packages are on the path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
-sys.path.insert(0, str(PROJECT_ROOT / "recoll_wrapper"))
-sys.path.insert(0, str(PROJECT_ROOT / "sms-processor"))
-sys.path.insert(0, str(PROJECT_ROOT / "recoll-audio-worker"))
+sys.path.insert(0, str(PROJECT_ROOT))
+sys.path.insert(0, str(PROJECT_ROOT / "recoll_wrapper" / "src"))
+sys.path.insert(0, str(PROJECT_ROOT / "sms-processor" / "src"))
+sys.path.insert(0, str(PROJECT_ROOT / "recoll-audio-worker" / "src"))
 sys.path.insert(0, str(PROJECT_ROOT / "recoll-webui"))
 
 # Mock recoll imports for webui if not available (recoll is a system package)

@@ -149,6 +149,9 @@ class TestIntegration:
             out_wav = args[1] if len(args) > 1 else Path("/tmp/fake.wav")
             out_wav.write_bytes(b"fake wav")
             return subprocess.CompletedProcess(["ffmpeg"], 0, stdout="", stderr="")
+        
+        # Also mock has_audio_stream to return True
+        monkeypatch.setattr(transcribe, "has_audio_stream", lambda x: True)
 
         def fake_whisper(wav_path, model_path, output_dir, language, output_stem=None):
             out_stem = output_dir / (output_stem if output_stem else wav_path.stem)

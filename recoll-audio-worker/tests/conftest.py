@@ -1,4 +1,5 @@
 """Pytest configuration for recoll-audio-worker tests."""
+
 import sys
 from pathlib import Path
 

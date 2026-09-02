@@ -283,6 +283,8 @@ class TestTranscribeFile:
 
     def test_transcript_fallback_cwd(self, tmp_path, monkeypatch) -> None:
         """Fallback: transcript in CWD is moved to output."""
+        # Change to tmp_path so Path.cwd() matches the test's working directory
+        monkeypatch.chdir(tmp_path)
         wav = tmp_path / "clip.wav"
         wav.write_bytes(b"fake wav")
         model = tmp_path / "ggml-model.bin"
@@ -304,6 +306,8 @@ class TestTranscribeFile:
 
     def test_transcript_fallback_old_location(self, tmp_path, monkeypatch) -> None:
         """Fallback: transcript in old /tmp location is moved to output."""
+        # Change to tmp_path so Path.cwd() matches the test's working directory
+        monkeypatch.chdir(tmp_path)
         wav = tmp_path / "clip.wav"
         wav.write_bytes(b"fake wav")
         model = tmp_path / "ggml-model.bin"

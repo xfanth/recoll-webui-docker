@@ -20,4 +20,5 @@ omit = ["src/sms_processor/process.py", "src/sms_processor/core.py"]
 [dependency-groups]
 dev = [
     "pytest-cov>=7.1.0",
+    "ruff>=0.16.0",
 ]

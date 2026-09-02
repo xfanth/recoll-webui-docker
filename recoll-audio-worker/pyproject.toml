@@ -11,6 +11,7 @@ dev = [
     "pytest-cov>=5.0.0",
     "pytest-xdist>=3.6.0",
     "ruff>=0.16.1",
+    "ty>=0.0.67",
 ]
 
 [tool.ruff]
