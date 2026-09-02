@@ -29,3 +29,6 @@ dev = [
 
 [tool.ty]
 exclude = ["tests/**", "recollindex.py"]
+
+[tool.ty.overrides]
+"*" = { exclude = ["tests/**", "recollindex.py"] }
