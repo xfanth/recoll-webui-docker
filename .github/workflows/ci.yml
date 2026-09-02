@@ -316,6 +316,12 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install hadolint
+        run: |
+          sudo apt-get update && sudo apt-get install -y curl || true
+          curl -L https://github.com/hadolint/hadolint/releases/download/v2.12.0/hadolint-Linux-x86_64 -o /usr/local/bin/hadolint
+          chmod +x /usr/local/bin/hadolint
+
       - name: Lint all Dockerfiles
         run: |
           for f in Dockerfile recoll-engine/Dockerfile whatsapp-archiver/Dockerfile sms-processor/Dockerfile mbsync/Dockerfile recoll-audio-worker/Dockerfile; do
