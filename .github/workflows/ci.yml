@@ -28,16 +28,28 @@ jobs:
           enable-cache: true
 
       - name: Lint — ruff (recoll_wrapper)
-        run: cd recoll_wrapper && uv run ruff check .
+        run: |
+          cd recoll_wrapper
+          uv sync --group dev
+          uv run ruff check .
 
       - name: Lint — ruff (sms-processor)
-        run: cd sms-processor && uv run ruff check .
+        run: |
+          cd sms-processor
+          uv sync --group dev
+          uv run ruff check .
 
       - name: Lint — ruff (recoll-audio-worker)
-        run: cd recoll-audio-worker && uv run ruff check .
+        run: |
+          cd recoll-audio-worker
+          uv sync --group dev
+          uv run ruff check .
 
       - name: Type check — ty (recoll_wrapper)
-        run: cd recoll_wrapper && uv run ty check . --exclude recoll-webui --exclude src
+        run: |
+          cd recoll_wrapper
+          uv sync --group dev
+          uv run ty check . --exclude recoll-webui --exclude src
 
   lint-javascript:
     name: Linting - JavaScript
