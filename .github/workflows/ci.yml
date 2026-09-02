@@ -49,7 +49,7 @@ jobs:
         run: |
           cd recoll_wrapper
           uv sync --group dev
-          uv run ty check . --exclude recoll-webui --exclude src
+          uv run ty check --project . src
 
   lint-javascript:
     name: Linting - JavaScript
