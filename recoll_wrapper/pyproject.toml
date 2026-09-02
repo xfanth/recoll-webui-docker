@@ -27,5 +27,7 @@ dev = [
     "ty>=0.0.67",
 ]
 
+[tool.ty]
+
 [tool.ty.src]
 exclude = ["tests/**", "recollindex.py"]
