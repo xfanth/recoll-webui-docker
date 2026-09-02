@@ -199,7 +199,7 @@ def run_cmd(*args: str, timeout: int | None = None) -> subprocess.CompletedProce
     try:
         # S603 is accepted here: callers pass fixed internal tool names
         # (docker/zpool/lsblk...), never untrusted user input.
-        return subprocess.run(  # noqa: S603
+        return subprocess.run(
             args, capture_output=True, text=True, timeout=timeout, check=False
         )
     except subprocess.TimeoutExpired:
@@ -669,7 +669,7 @@ def run_indexing(mode: str, command: list[str], total_lines: int | None = None) 
     log.info("Starting: %s", _escape_markup(" ".join(full_cmd)))
     start = time.monotonic()
     try:
-        proc = subprocess.Popen(  # noqa: S603 — fixed internal docker invocation
+        proc = subprocess.Popen(
             full_cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
         )
     except FileNotFoundError:

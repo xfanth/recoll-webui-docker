@@ -1,31 +1,30 @@
 #!/usr/bin/env python
 #{{{ imports
-import os
-import bottle
-import time
-import sys
+import csv
 import datetime
 import glob
 import hashlib
+import io
 import json
-import csv
-import StringIO
-import ConfigParser
-import string
+import os
 import shlex
-import urllib
+import string
+import time
+import urllib.parse
+
+import bottle
+
 # import recoll and rclextract
 try:
-    from recoll import recoll
-    from recoll import rclextract
+    from recoll import rclextract, recoll
     hasrclextract = True
-except:
+except Exception:
     import recoll
     hasrclextract = False
 # import rclconfig system-wide or local copy
 try:
     from recoll import rclconfig
-except:
+except Exception:
     import rclconfig
 #}}}
 #{{{ settings
@@ -103,7 +102,7 @@ def timestr(secs, fmt):
 def normalise_filename(fn):
     valid_chars = "_-%s%s" % (string.ascii_letters, string.digits)
     out = ""
-    for i in range(0,len(fn)):
+    for i in range(len(fn)):
         if fn[i] in valid_chars:
             out += fn[i]
         else:
@@ -117,7 +116,7 @@ def get_config():
     rclconf = rclconfig.RclConfig()
     config['confdir'] = rclconf.getConfDir()
     topdirs = rclconf.config.get('topdirs', rclconf.keydir) if rclconf.config else rclconf.keydir
-    config['dirs'] = [os.path.expanduser(d) for d in
+    config['dirs'] = [os.path.abspath(os.path.expanduser(d)) for d in
                       shlex.split(topdirs or rclconf.keydir or '')]
     config['stemlang'] = rclconf.config.get('indexstemminglanguages', rclconf.keydir) if rclconf.config else (rclconf.keydir or '')
     # get config from cookies or defaults
@@ -134,7 +133,7 @@ def get_config():
     # get mountpoints
     config['mounts'] = {}
     for d in config['dirs']:
-        name = 'mount_%s' % urllib.quote(d,'')
+        name = 'mount_%s' % urllib.parse.quote(d,'')
         config['mounts'][d] = select([bottle.request.get_cookie(name), DEFAULTS['mounts'].get(d), 'file://%s' % d], [None, ''])
     return config
 #}}}
@@ -142,12 +141,11 @@ def get_config():
 def get_dirs(tops, depth):
     v = []
     for top in tops:
+        top = os.path.abspath(top)
         dirs = [top]
         for d in range(1, depth+1):
             dirs = dirs + glob.glob(top + '/*' * d)
-        dirs = filter(lambda f: os.path.isdir(f), dirs)
-        top_path = top.rsplit('/', 1)[0]
-        dirs = [w.replace(top_path+'/', '', 1) for w in dirs]
+        dirs = list(filter(lambda f: os.path.isdir(f), dirs))
         v = v + dirs
     return ['<all>'] + v
 #}}}
@@ -183,7 +181,7 @@ def recoll_initsearch(q):
     try:
         qs = query_to_recoll_string(q)
         query.execute(qs, config['stem'], config['stemlang'])
-    except:
+    except Exception:
         pass
     return query
 #}}}
@@ -204,8 +202,7 @@ def recoll_search(q, dosnippets=True):
 
     if config['maxresults'] == 0:
         config['maxresults'] = nres
-    if nres > config['maxresults']:
-        nres = config['maxresults']
+    nres = min(nres, config['maxresults'])
     if config['perpage'] == 0 or q['page'] == 0:
         config['perpage'] = nres
         q['page'] = 1
@@ -221,7 +218,7 @@ def recoll_search(q, dosnippets=True):
     for i in range(config['perpage']):
         try:
             doc = query.fetchone()
-        except:
+        except Exception:
             break
         d = {}
         for f in FIELDS:
@@ -345,7 +342,7 @@ def get_csv():
     bottle.response.headers['Content-Type'] = 'text/csv'
     bottle.response.headers['Content-Disposition'] = 'attachment; filename=recoll-%s.csv' % normalise_filename(qs)
     res, nres, timer = recoll_search(query, False)
-    si = StringIO.StringIO()
+    si = io.StringIO()
     cw = csv.writer(si)
     fields = config['csvfields'].split()
     cw.writerow(fields)
@@ -368,14 +365,14 @@ def set():
     for k, v in DEFAULTS.items():
         bottle.response.set_cookie(k, str(bottle.request.query.get(k)), max_age=3153600000, expires=315360000)
     for d in config['dirs']:
-        cookie_name = 'mount_%s' % urllib.quote(d, '')
+        cookie_name = 'mount_%s' % urllib.parse.quote(d, '')
         bottle.response.set_cookie(cookie_name, str(bottle.request.query.get('mount_%s' % d)), max_age=3153600000, expires=315360000)
     bottle.redirect('./')
 #}}}
 #{{{ osd
 @bottle.route('/osd.xml')
 @bottle.view('osd')
-def main():
+def osd():
     #config = get_config()
     url = bottle.request.urlparts
     url = '%s://%s' % (url.scheme, url.netloc)

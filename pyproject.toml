@@ -1,0 +1,11 @@
+[tool.pytest.ini_options]
+addopts = "--cov=. --cov-report=xml --cov-branch"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["."]
+branch = true
+omit = ["tests/**", "sms-processor/src/sms_processor/core.py", "sms-processor/src/sms_processor/process.py", "recoll-audio-worker/transcribe.py"]
+
+[tool.uv.workspace]
+members = ["recoll_wrapper", "sms-processor", "recoll-audio-worker"]

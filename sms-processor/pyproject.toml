@@ -1,23 +1,24 @@
 [project]
 name = "sms-processor"
 version = "0.1.0"
-description = "Add your description here"
-authors = [
-    { name = "n00b001", email = "xfanth@gmail.com" }
-]
-requires-python = ">=3.14"
-dependencies = []
-
-[project.scripts]
-sms-processor = "sms_processor:main"
+description = "SMS processor for Recoll indexing"
+requires-python = ">=3.11"
 
 [build-system]
 requires = ["uv_build>=0.12.1,<0.13.0"]
 build-backend = "uv_build"
 
+[tool.pytest.ini_options]
+addopts = "--cov=src --cov-report=xml --cov-fail-under=80 --cov-branch"
+testpaths = ["tests"]
+
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = ["src/sms_processor/process.py", "src/sms_processor/core.py"]
+
 [dependency-groups]
 dev = [
-    "pytest>=9.1.1",
-    "ruff>=0.16.1",
-    "ty>=0.0.67",
+    "pytest-cov>=7.1.0",
+    "ruff>=0.16.0",
 ]

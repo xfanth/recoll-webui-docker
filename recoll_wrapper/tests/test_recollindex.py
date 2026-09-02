@@ -11,8 +11,9 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-# Ensure the wrapper package is on the path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+# Ensure the wrapper package and repo root are on the path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
 
 # ---------------------------------------------------------------------------

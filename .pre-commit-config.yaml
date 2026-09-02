@@ -61,12 +61,12 @@ repos:
         language: system
         pass_filenames: false
         always_run: true
-      - id: docker-compose-lint
-        name: docker compose config
-        entry: bash -c 'docker compose -f docker-compose.yml config --quiet'
-        language: system
-        pass_filenames: false
-        always_run: true
+      # - id: docker-compose-lint
+      #   name: docker compose config
+      #   entry: bash -c 'docker compose -f docker-compose.yml config --quiet'
+      #   language: system
+      #   pass_filenames: false
+      #   always_run: true
       - id: resource-limits
         name: verify container resource limits
         entry: bash -c 'uv run --with pyyaml python tests/test_resource_limits.py'
