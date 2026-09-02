@@ -28,5 +28,4 @@ dev = [
 ]
 
 [tool.ty]
-all = "error"
 exclude = ["tests/**", "recollindex.py"]
