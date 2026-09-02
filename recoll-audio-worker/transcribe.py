@@ -1,5 +1,4 @@
-"""
-Audio/Video Transcription Worker
+"""Audio/Video Transcription Worker
 =================================
 Polls input directories for audio and video files, transcribes them to
 plain-text transcripts using whisper.cpp, and writes .txt sidecars to
@@ -28,6 +27,7 @@ import os
 import shutil
 import subprocess
 import sys
+import tempfile
 import time
 from pathlib import Path
 
@@ -62,6 +62,7 @@ AUDIO_EXTENSIONS = {".mp3", ".wav", ".m4a", ".aac", ".ogg", ".opus", ".flac"}
 VIDEO_EXTENSIONS = {".webm", ".mp4", ".mov", ".mkv"}
 ALL_EXTENSIONS = AUDIO_EXTENSIONS | VIDEO_EXTENSIONS
 
+
 # ---------------------------------------------------------------------------
 # State management — track which files we've already processed
 # ---------------------------------------------------------------------------
@@ -77,6 +78,7 @@ def load_state() -> dict[str, str]:
 
 
 def save_state(state: dict[str, str]) -> None:
+    """Persist state dict to JSON file."""
     STATE_FILE.write_text(json.dumps(state, indent=2))
 
 
@@ -84,7 +86,7 @@ def file_hash(path: Path) -> str:
     """Compute MD5 hash of a file."""
     h = hashlib.md5()
     # Read in chunks for large files
-    for chunk in iter(lambda: path.read_bytes()[len(h.hexdigest()):], b""):
+    for chunk in iter(lambda: path.read_bytes()[len(h.hexdigest()) :], b""):
         h.update(chunk)
     return h.hexdigest()
 
@@ -127,18 +129,23 @@ def download_model(model_name: str) -> Path:
     cmd = [
         "curl",
         "--fail",
-        "--retry", "3",
-        "--retry-delay", "5",
+        "--retry",
+        "3",
+        "--retry-delay",
+        "5",
         "-L",
         url,
-        "-o", str(model_file),
+        "-o",
+        str(model_file),
     ]
 
     try:
         result = subprocess.run(
             cmd, check=True, capture_output=True, text=True, timeout=600
         )
-        log.info("Download output: %s", result.stdout[-200:] if result.stdout else "(none)")
+        log.info(
+            "Download output: %s", result.stdout[-200:] if result.stdout else "(none)"
+        )
     except subprocess.CalledProcessError as e:
         raise RuntimeError(f"Model download failed: {e.stderr}") from e
     except subprocess.TimeoutExpired as e:
@@ -191,10 +198,14 @@ def has_audio_stream(path: Path) -> bool:
     """
     cmd = [
         "ffprobe",
-        "-v", "error",
-        "-select_streams", "a:0",
-        "-show_entries", "stream=codec_type",
-        "-of", "csv=p=0",
+        "-v",
+        "error",
+        "-select_streams",
+        "a:0",
+        "-show_entries",
+        "stream=codec_type",
+        "-of",
+        "csv=p=0",
         str(path),
     ]
     try:
@@ -212,10 +223,14 @@ def transcode_to_wav(input_path: Path, output_path: Path) -> None:
     cmd = [
         "ffmpeg",
         "-y",
-        "-i", str(input_path),
-        "-ac", "1",
-        "-ar", "16000",
-        "-c:a", "pcm_s16le",
+        "-i",
+        str(input_path),
+        "-ac",
+        "1",
+        "-ar",
+        "16000",
+        "-c:a",
+        "pcm_s16le",
         str(output_path),
     ]
 
@@ -247,12 +262,17 @@ def transcribe_file(
 
     cmd = [
         str(WHISPER_BIN),
-        "-m", str(model_path),
-        "-f", str(wav_path),
+        "-m",
+        str(model_path),
+        "-f",
+        str(wav_path),
         "-otxt",
-        "-l", language,
-        "-of", str(out_stem),  # absolute output filename stem
-        "-od", str(output_dir),
+        "-l",
+        language,
+        "-of",
+        str(out_stem),  # absolute output filename stem
+        "-od",
+        str(output_dir),
     ]
 
     log.info("Transcribing: %s → %s", wav_path, txt_output)
@@ -261,9 +281,7 @@ def transcribe_file(
     )
 
     if result.returncode != 0:
-        log.error(
-            "whisper.cpp failed for %s: %s", wav_path, result.stderr[-300:]
-        )
+        log.error("whisper.cpp failed for %s: %s", wav_path, result.stderr[-300:])
         raise RuntimeError(f"whisper.cpp failed: {result.stderr[-300:]}")
 
     # Verify output exists — whisper.cpp honours an absolute -of, but on
@@ -308,7 +326,7 @@ def process_audio_file(
     out_subdir = output_base / rel_path.parent
     out_subdir.mkdir(parents=True, exist_ok=True)
 
-    tmp_wav = Path("/tmp") / (audio_path.stem + "_transcode.wav")
+    tmp_wav = Path(tempfile.gettempdir()) / f"{audio_path.stem}_transcode.wav"
 
     try:
         # Video-only files (no audio stream) can't be transcribed — skip them
@@ -324,8 +342,11 @@ def process_audio_file(
         else:
             wav_input = audio_path
 
-        # Transcribe - pass original audio filename stem so transcript uses correct name
-        txt_path = transcribe_file(wav_input, model_path, out_subdir, language, audio_path.stem)
+        # Transcribe - pass original audio filename stem
+        # so transcript uses correct name
+        txt_path = transcribe_file(
+            wav_input, model_path, out_subdir, language, audio_path.stem
+        )
 
         return txt_path, False
 
@@ -339,9 +360,7 @@ def process_audio_file(
             tmp_wav.unlink()
 
 
-def scan_and_process(
-    model_path: Path, language: str
-) -> int:
+def scan_and_process(model_path: Path, language: str) -> int:
     """Scan INPUT_DIR for new/changed audio files and process them."""
     state = load_state()
     processed_count = 0
@@ -421,15 +440,14 @@ def startup() -> Path:
     MODELS_DIR.mkdir(parents=True, exist_ok=True)
 
     # Download model
-    model_path = download_model(WHISPER_MODEL)
-
-    return model_path
+    return download_model(WHISPER_MODEL)
 
 
 # ---------------------------------------------------------------------------
 # Main loop
 # ---------------------------------------------------------------------------
 def main() -> None:
+    """Entry point for the transcription worker."""
     try:
         model_path = startup()
     except RuntimeError as e:

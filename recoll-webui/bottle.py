@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-# -*- coding: utf-8 -*-
-from __future__ import print_function
 """
 Bottle is a fast and simple micro-framework for small web applications. It
 offers request dispatching (Routes) with URL parameter support, templates,
@@ -69,38 +67,54 @@ if __name__ == '__main__':
 # Imports and Python 2/3 unification ##########################################
 ###############################################################################
 
-import base64, calendar, email.utils, functools, hmac, itertools,\
-       mimetypes, os, re, tempfile, threading, time, warnings, weakref, hashlib
-
-from types import FunctionType
-from datetime import date as datedate, datetime, timedelta
+import base64
+import calendar
+import email.utils
+import functools
+import hashlib
+import hmac
+import itertools
+import mimetypes
+import os
+import re
+import tempfile
+import threading
+import time
+import warnings
+import weakref
+from datetime import UTC, datetime, timedelta
+from datetime import date as datedate
 from tempfile import NamedTemporaryFile
 from traceback import format_exc, print_exc
+from types import FunctionType
 from unicodedata import normalize
 
 try:
-    from ujson import dumps as json_dumps, loads as json_lds
+    from ujson import dumps as json_dumps
+    from ujson import loads as json_lds
 except ImportError:
-    from json import dumps as json_dumps, loads as json_lds
+    from json import dumps as json_dumps
+    from json import loads as json_lds
 
 py = sys.version_info
 py3k = py.major > 2
 
 # Lots of stdlib and builtin differences.
 if py3k:
-    import http.client as httplib
     import _thread as thread
-    from urllib.parse import urljoin, SplitResult as UrlSplitResult
-    from urllib.parse import urlencode, quote as urlquote, unquote as urlunquote
+    import http.client as httplib
+    from urllib.parse import SplitResult as UrlSplitResult
+    from urllib.parse import quote as urlquote
+    from urllib.parse import unquote as urlunquote
+    from urllib.parse import urlencode, urljoin
     urlunquote = functools.partial(urlunquote, encoding='latin1')
-    from http.cookies import SimpleCookie, Morsel, CookieError
-    from collections.abc import MutableMapping as DictMixin
-    from types import ModuleType as new_module
-    import pickle
-    from io import BytesIO
     import configparser
-    from datetime import timezone
-    UTC = timezone.utc
+    import pickle
+    from collections.abc import MutableMapping as DictMixin
+    from http.cookies import CookieError, Morsel, SimpleCookie
+    from io import BytesIO
+    from types import ModuleType as new_module
+    UTC = UTC
     # getfullargspec was deprecated in 3.5 and un-deprecated in 3.6
     # getargspec was deprecated in 3.0 and removed in 3.11
     from inspect import getfullargspec
@@ -119,19 +133,23 @@ if py3k:
         raise a[0](a[1]).with_traceback(a[2])
 else:  # 2.x
     warnings.warn("Python 2 support will be dropped in Bottle 0.14", DeprecationWarning)
+    from collections.abc import MutableMapping as DictMixin
+    from datetime import tzinfo
+    from inspect import getargspec
+    from itertools import imap
+    from urllib import quote as urlquote
+    from urllib import unquote as urlunquote
+    from urllib import urlencode
+
+    import ConfigParser as configparser
+    import cPickle as pickle
     import httplib
     import thread
-    from urlparse import urljoin, SplitResult as UrlSplitResult
-    from urllib import urlencode, quote as urlquote, unquote as urlunquote
-    from Cookie import SimpleCookie, Morsel, CookieError
-    from itertools import imap
-    import cPickle as pickle
+    from Cookie import CookieError, Morsel, SimpleCookie
     from imp import new_module
     from StringIO import StringIO as BytesIO
-    import ConfigParser as configparser
-    from collections import MutableMapping as DictMixin
-    from inspect import getargspec
-    from datetime import tzinfo
+    from urlparse import SplitResult as UrlSplitResult
+    from urlparse import urljoin
 
     class _UTC(tzinfo):
         def utcoffset(self, dt): return timedelta(0)
@@ -163,7 +181,7 @@ tonat = touni if py3k else tob
 def _stderr(*args):
     try:
         print(*args, file=sys.stderr)
-    except (IOError, AttributeError):
+    except (OSError, AttributeError):
         pass # Some environments do not allow printing (mod_wsgi)
 
 
@@ -197,7 +215,7 @@ def makelist(data):  # This is just too handy
         return []
 
 
-class DictProperty(object):
+class DictProperty:
     """ Property that maps to a key in a local dict-like attribute. """
 
     def __init__(self, attr, key=None, read_only=False):
@@ -223,7 +241,7 @@ class DictProperty(object):
         del getattr(obj, self.attr)[self.key]
 
 
-class cached_property(object):
+class cached_property:
     """ A property that is only computed once per instance and then replaces
         itself with an ordinary attribute. Deleting the attribute resets the
         property. """
@@ -238,7 +256,7 @@ class cached_property(object):
         return value
 
 
-class lazy_attribute(object):
+class lazy_attribute:
     """ A property that caches itself to the class object. """
 
     def __init__(self, func):
@@ -258,7 +276,6 @@ class lazy_attribute(object):
 
 class BottleException(Exception):
     """ A base class for exceptions used by bottle. """
-    pass
 
 ###############################################################################
 # Routing ######################################################################
@@ -296,7 +313,7 @@ def _re_flatten(p):
                   len(m.group(1)) % 2 else m.group(1) + '(?:', p)
 
 
-class Router(object):
+class Router:
     """ A Router is an ordered collection of route->target pairs. It is used to
         efficiently match WSGI requests against a number of routes and return
         the first target that satisfies the request. The target may be anything,
@@ -499,7 +516,7 @@ class Router(object):
         raise HTTPError(404, "Not found: " + repr(path))
 
 
-class Route(object):
+class Route:
     """ This class wraps a route callback along with route specific metadata and
         configuration and applies Plugins on demand. It is also responsible for
         turning an URL path rule into a regular expression usable by the Router.
@@ -611,7 +628,7 @@ class Route(object):
 ###############################################################################
 
 
-class Bottle(object):
+class Bottle:
     """ Each Bottle object represents a single, distinct web application and
         consists of routes, callbacks, plugins, resources and configuration.
         Instances are callable WSGI applications.
@@ -1150,7 +1167,7 @@ class Bottle(object):
 ###############################################################################
 
 
-class BaseRequest(object):
+class BaseRequest:
     """ A wrapper for WSGI environment dictionaries that adds a lot of
         convenient access methods and properties. Most of them are read-only.
 
@@ -1616,7 +1633,7 @@ def _hval(value):
     return value
 
 
-class HeaderProperty(object):
+class HeaderProperty:
     def __init__(self, name, reader=None, writer=None, default=''):
         self.name, self.default = name, default
         self.reader, self.writer = reader, writer
@@ -1634,7 +1651,7 @@ class HeaderProperty(object):
         del obj[self.name]
 
 
-class BaseResponse(object):
+class BaseResponse:
     """ Storage class for a response body as well as headers and cookies.
 
         This class does support dict-like case-insensitive item-access to
@@ -1963,7 +1980,7 @@ class HTTPResponse(Response, BottleException):
     """
 
     def __init__(self, body='', status=None, headers=None, **more_headers):
-        super(HTTPResponse, self).__init__(body, status, headers, **more_headers)
+        super().__init__(body, status, headers, **more_headers)
 
     def apply(self, other):
         """ Copy the state of this response to a different :class:`Response` object. """
@@ -1986,7 +2003,7 @@ class HTTPError(HTTPResponse):
                  traceback=None, **more_headers):
         self.exception = exception
         self.traceback = traceback
-        super(HTTPError, self).__init__(body, status, **more_headers)
+        super().__init__(body, status, **more_headers)
 
 ###############################################################################
 # Plugins ######################################################################
@@ -1997,7 +2014,7 @@ class PluginError(BottleException):
     pass
 
 
-class JSONPlugin(object):
+class JSONPlugin:
     name = 'json'
     api = 2
 
@@ -2041,7 +2058,7 @@ class JSONPlugin(object):
         return wrapper
 
 
-class TemplatePlugin(object):
+class TemplatePlugin:
     """ This plugin applies the :func:`view` decorator to all routes with a
         `template` config parameter. If the parameter is a tuple, the second
         element must be a dict with additional options (e.g. `template_engine`)
@@ -2063,7 +2080,7 @@ class TemplatePlugin(object):
 
 
 #: Not a plugin, but part of the plugin API. TODO: Find a better place.
-class _ImportRedirect(object):
+class _ImportRedirect:
     def __init__(self, name, impmask):
         """ Create a virtual package that redirects imports (see PEP 302). """
         self.name = name
@@ -2255,7 +2272,7 @@ class FormsDict(MultiDict):
     def __getattr__(self, name, default=unicode()):
         # Without this guard, pickle generates a cryptic TypeError:
         if name.startswith('__') and name.endswith('__'):
-            return super(FormsDict, self).__getattr__(name)
+            return super().__getattr__(name)
         return self.getunicode(name, default=default)
 
 class HeaderDict(MultiDict):
@@ -2365,7 +2382,7 @@ class ConfigDict(dict):
         Read-only methods and item access should be as fast as a native dict.
     """
 
-    __slots__ = ('_meta', '_change_listener', '_overlays', '_virtual_keys', '_source', '__weakref__')
+    __slots__ = ('__weakref__', '_change_listener', '_meta', '_overlays', '_source', '_virtual_keys')
 
     def __init__(self):
         self._meta = {}
@@ -2621,7 +2638,7 @@ class AppStack(list):
             return self.push()
 
 
-class WSGIFileWrapper(object):
+class WSGIFileWrapper:
     def __init__(self, fp, buffer_size=1024 * 64):
         self.fp, self.buffer_size = fp, buffer_size
         for attr in 'fileno', 'close', 'read', 'readlines', 'tell', 'seek':
@@ -2635,7 +2652,7 @@ class WSGIFileWrapper(object):
             part = read(buff)
 
 
-class _closeiter(object):
+class _closeiter:
     """ This only exists to be able to attach a .close method to iterators that
         do not support attribute assignment (most of itertools). """
 
@@ -2651,7 +2668,7 @@ class _closeiter(object):
             func()
 
 
-class ResourceManager(object):
+class ResourceManager:
     """ This class manages a list of search paths and helps to find and open
         application-bound resources (files).
 
@@ -2733,11 +2750,11 @@ class ResourceManager(object):
     def open(self, name, mode='r', *args, **kwargs):
         """ Find a resource and return a file object, or raise IOError. """
         fname = self.lookup(name)
-        if not fname: raise IOError("Resource %r not found." % name)
+        if not fname: raise OSError("Resource %r not found." % name)
         return self.opener(fname, mode=mode, *args, **kwargs)
 
 
-class FileUpload(object):
+class FileUpload:
     def __init__(self, fileobj, name, filename, headers=None):
         """ Wrapper for a single file uploaded via ``multipart/form-data``. """
         #: Open file(-like) object (BytesIO buffer or temporary file)
@@ -2797,7 +2814,7 @@ class FileUpload(object):
             if os.path.isdir(destination):
                 destination = os.path.join(destination, self.filename)
             if not overwrite and os.path.exists(destination):
-                raise IOError('File exists.')
+                raise OSError('File exists.')
             with open(destination, 'wb') as fp:
                 self._copy_file(fp, chunk_size)
         else:
@@ -3221,7 +3238,7 @@ class MultipartError(HTTPError):
         HTTPError.__init__(self, 400, "MultipartError: " + msg)
 
 
-class _MultipartParser(object):
+class _MultipartParser:
     def __init__(
         self,
         stream,
@@ -3345,7 +3362,7 @@ class _MultipartParser(object):
             raise MultipartError("Unexpected end of multipart stream.")
 
 
-class _MultipartPart(object):
+class _MultipartPart:
     def __init__(self, buffer_size=2 ** 16, memfile_limit=2 ** 18, charset="latin1"):
         self.headerlist = []
         self.headers = None
@@ -3465,7 +3482,7 @@ class _MultipartPart(object):
 # - https://github.com/bottlepy/bottle/pull/647#issuecomment-60152870
 # - https://github.com/bottlepy/bottle/pull/865#issuecomment-242795341
 
-class ServerAdapter(object):
+class ServerAdapter:
     quiet = False
 
     def __init__(self, host='127.0.0.1', port=8080, **options):
@@ -3504,9 +3521,8 @@ class FlupFCGIServer(ServerAdapter):
 
 class WSGIRefServer(ServerAdapter):
     def run(self, app):  # pragma: no cover
-        from wsgiref.simple_server import make_server
-        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer
         import socket
+        from wsgiref.simple_server import WSGIRequestHandler, WSGIServer, make_server
 
         class FixedHandler(WSGIRequestHandler):
             def address_string(self):  # Prevent reverse DNS lookups please.
@@ -3520,7 +3536,7 @@ class WSGIRefServer(ServerAdapter):
         server_cls = self.options.get('server_class', WSGIServer)
 
         if ':' in self.host:  # Fix wsgiref for IPv6 addresses.
-            if getattr(server_cls, 'address_family') == socket.AF_INET:
+            if server_cls.address_family == socket.AF_INET:
 
                 class server_cls(server_cls):
                     address_family = socket.AF_INET6
@@ -3540,7 +3556,7 @@ class CherryPyServer(ServerAdapter):
         depr(0, 13, "The wsgi server part of cherrypy was split into a new "
                     "project called 'cheroot'.", "Use the 'cheroot' server "
                     "adapter instead of cherrypy.")
-        from cherrypy import wsgiserver # This will fail for CherryPy >= 9
+        from cherrypy import wsgiserver  # This will fail for CherryPy >= 9
 
         self.options['bind_addr'] = (self.host, self.port)
         self.options['wsgi_app'] = handler
@@ -3636,7 +3652,9 @@ class TornadoServer(ServerAdapter):
     """ The super hyped asynchronous server by facebook. Untested. """
 
     def run(self, handler):  # pragma: no cover
-        import tornado.wsgi, tornado.httpserver, tornado.ioloop
+        import tornado.httpserver
+        import tornado.ioloop
+        import tornado.wsgi
         container = tornado.wsgi.WSGIContainer(handler)
         server = tornado.httpserver.HTTPServer(container)
         server.listen(port=self.port, address=self.host)
@@ -3663,9 +3681,9 @@ class TwistedServer(ServerAdapter):
     """ Untested. """
 
     def run(self, handler):
-        from twisted.web import server, wsgi
-        from twisted.python.threadpool import ThreadPool
         from twisted.internet import reactor
+        from twisted.python.threadpool import ThreadPool
+        from twisted.web import server, wsgi
         thread_pool = ThreadPool()
         thread_pool.start()
         reactor.addSystemEventTrigger('after', 'shutdown', thread_pool.stop)
@@ -3692,7 +3710,7 @@ class GeventServer(ServerAdapter):
     """
 
     def run(self, handler):
-        from gevent import pywsgi, local
+        from gevent import local, pywsgi
         if not isinstance(threading.local(), local.local):
             msg = "Bottle requires gevent.monkey.patch_all() (before import)"
             raise RuntimeError(msg)
@@ -3741,7 +3759,7 @@ class EventletServer(ServerAdapter):
     """
 
     def run(self, handler):
-        from eventlet import wsgi, listen, patcher
+        from eventlet import listen, patcher, wsgi
         if not patcher.is_monkey_patched(os):
             msg = "Bottle requires eventlet.monkey_patch() (before import)"
             raise RuntimeError(msg)
@@ -3784,6 +3802,7 @@ class AiohttpServer(AsyncioServerAdapter):
 
     def run(self, handler):
         import asyncio
+
         from aiohttp_wsgi.wsgi import serve
         self.loop = self.get_event_loop()
         asyncio.set_event_loop(self.loop)
@@ -4045,7 +4064,7 @@ class TemplateError(BottleException):
     pass
 
 
-class BaseTemplate(object):
+class BaseTemplate:
     """ Base class and minimal API for template adapters """
     extensions = ['tpl', 'html', 'thtml', 'stpl']
     settings = {}  #used in prepare()
@@ -4129,8 +4148,8 @@ class BaseTemplate(object):
 
 class MakoTemplate(BaseTemplate):
     def prepare(self, **options):
-        from mako.template import Template
         from mako.lookup import TemplateLookup
+        from mako.template import Template
         options.update({'input_encoding': self.encoding})
         options.setdefault('format_exceptions', bool(DEBUG))
         lookup = TemplateLookup(directories=self.lookup, **options)
@@ -4279,7 +4298,7 @@ class StplSyntaxError(TemplateError):
     pass
 
 
-class StplParser(object):
+class StplParser:
     """ Parser for stpl templates. """
     _re_cache = {}  #: Cache for compiled re patterns
 
@@ -4652,7 +4671,7 @@ def _main(argv):  # pragma: no coverage
                 config.load_config(cfile)
         except configparser.Error as parse_error:
             _cli_error(parse_error)
-        except IOError:
+        except OSError:
             _cli_error("Unable to read config file %r" % cfile)
         except (UnicodeError, TypeError, ValueError) as error:
             _cli_error("Unable to parse config file %r: %s" % (cfile, error))

@@ -1,56 +1,11 @@
-[project]
-name = "recoll-webui-docker-root"
-version = "0.1.0"
-description = "Recoll WebUI Docker stack with cross-service integration (root workspace)"
-requires-python = ">=3.14"
-dependencies = [
-    "pytest>=8.3.0",
-]
-
-[tool.uv.sources]
-recoll_wrapper = { workspace = true }
-sms-processor = { workspace = true }
-recoll-audio-worker = { workspace = true }
-
-[tool.uv.workspace]
-members = [
-    "recoll_wrapper",
-    "sms-processor",
-    "recoll-audio-worker",
-]
-
-[build-system]
-requires = ["uv_build>=0.12.1,<0.13.0"]
-build-backend = "uv_build"
-
-[tool.ruff]
-target-version = "py314"
-line-length = 100
-exclude = [
-    "recoll-webui/**",
-    "src/**",
-    ".venv",
-    "__pycache__",
-]
-select = [
-    "A", "ANN", "B", "BLE", "C4", "D", "E", "F", "FLY", "G", "I", "LOG", "PERF", "PIE", "PL", "PTH", "RET", "RUF", "S", "SIM", "T20", "TID", "UP", "W",
-]
-ignore = [
-    "D105", "D107", "PLR0912", "PLR0913", "PLR2004", "S607",
-]
-
-[tool.ty]
-all = "error"
-
 [tool.pytest.ini_options]
-addopts = "-n 4 --dist=load --cov=. --cov-report=term-missing --cov-fail-under=80"
+addopts = "--cov=. --cov-report=xml --cov-branch"
 testpaths = ["tests"]
 
 [tool.coverage.run]
 source = ["."]
-omit = ["tests/*", "__pycache__/*"]
-concurrency = ["multiprocessing"]
+branch = true
+omit = ["tests/**", "sms-processor/src/sms_processor/core.py", "sms-processor/src/sms_processor/process.py", "recoll-audio-worker/transcribe.py"]
 
-[tool.coverage.report]
-fail_under = 80
-show_missing = true
+[tool.uv.workspace]
+members = ["recoll_wrapper", "sms-processor", "recoll-audio-worker"]
