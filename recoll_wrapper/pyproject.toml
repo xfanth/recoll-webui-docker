@@ -26,3 +26,7 @@ dev = [
     "ruff>=0.16.0",
     "ty>=0.0.67",
 ]
+
+[tool.ty]
+all = "error"
+exclude = ["tests/**", "recollindex.py"]
